@@ -1,4 +1,4 @@
-name:                doc-font-to-style
+name:                pandoc-font-to-style
 version:             0.1.0.0
 github:              "githubuser/doc-font-to-style"
 license:             BSD3
@@ -17,13 +17,13 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on Github at <https://github.com/githubuser/doc-font-to-style#readme>
+description:         Please see the README on Github at <https://github.com/italia/pandoc-font-to-style#readme>
 
 dependencies:
 - base >= 4.7 && < 5
 
 executables:
-  doc-font-to-style-exe:
+  pandoc-font-to-style-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
