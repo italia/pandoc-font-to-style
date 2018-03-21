@@ -1,5 +1,5 @@
 
-## doc-font-to-style
+## pandoc-font-to-style
 
 this command works as a [pandoc
 filter](http://pandoc.org/filters.html) for Open XML (`.docx`)
@@ -7,7 +7,7 @@ documents enabling you to turn fonts into semantic
 information. currently it can turn fonts into code with the
 `--as-code` option as follows:
 
-    $ doc-font-to-style --as-code "Courier New" document.docx | pandoc ...
+    $ pandoc-font-to-style --as-code "Courier New" < document.docx | pandoc ...
 
 it's easy to extend the filter in order to support more options like
 `--as-emph`, `--as-strong` etcetera.
@@ -18,7 +18,7 @@ to help selecting values for the `--as-code` option, the filter
 supports a `--list` option which produces a summary of the fonts found
 in the document:
 
-    $ doc-font-to-style --list document.docx
+    $ pandoc-font-to-style --list < document.docx
     the document contains the following fonts:
     "Courier New", 2 occurrences
 
@@ -28,8 +28,8 @@ when used with the `--as-code` option, the command produces the
 modified document serialised as JSON so that it can be piped through
 other filters or passed to pandoc again
 
-    $ doc-font-to-style --as-code "Courier New" document.docx > document.json
-    $ pandoc document.json -o document.rst # for instance
+    $ pandoc-font-to-style --as-code "Courier New" < doc.docx > doc.json
+    $ pandoc doc.json -o doc.rst # for instance
 
 see the doc for pandoc's `--filter` option for more details
 
