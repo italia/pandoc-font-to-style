@@ -1,43 +1,42 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, OverloadedStrings #-}
 module Main where
 
 import Text.Pandoc
 import Text.Pandoc.JSON
+import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Options (ReaderOptions(..))
 import System.Environment (getArgs)
-import qualified Data.ByteString.Lazy as B
+import Data.Text (Text(..), unlines, pack)
 import qualified Data.Text.IO as T
 import qualified Data.Map as M
 import Data.Monoid ((<>))
+import Control.Applicative ((<$>))
 import Data.Maybe (maybeToList)
+import Data.Either (fromRight)
 import Options.Applicative
 import Control.Monad (when, unless)
 
 fontValue :: (String, [String], [(String, String)]) -> Maybe String
 fontValue (id, classes, attrs) = M.lookup "font" $ M.fromList attrs
 
-listFonts :: Pandoc -> [String]
+listFonts :: Pandoc -> [Text]
 listFonts = summariseFonts . query extractSpanFonts
-  where summariseFonts :: [String] -> [String]
+  where summariseFonts :: [Text] -> [Text]
         summariseFonts = map formatFont . M.toList . count
-        count :: [String] -> M.Map String Int
+        count :: [Text] -> M.Map Text Int
         count = foldr (flip (M.insertWith (+)) 1) M.empty
-        formatFont :: (String, Int) -> String
-        formatFont (f, o) = "\"" <> f <> "\", " <> show o <> " occurrences"
-        extractSpanFonts :: Inline -> [String]
-        extractSpanFonts (Span a _) = maybeToList $ fontValue a
+        formatFont :: (Text, Int) -> Text
+        formatFont (f, o) = "\"" <> f <> "\", " <> (pack $ show o) <> " occurrences"
+        extractSpanFonts :: Inline -> [Text]
+        extractSpanFonts (Span a _) = map pack <$> maybeToList $ fontValue a
         extractSpanFonts _          = []
   
-readDoc :: B.ByteString -> IO (Either PandocError Pandoc)
-readDoc = runIO . readDocx def{ readerFontsAsAttributes = True }
-
 toString :: [Inline] -> String
 toString = query convertSpaces
   where convertSpaces (Str s) = s
         convertSpaces Space = " "
         convertSpaces SoftBreak = "\n"
-        convertSpaces Space = "\n"
         convertSpaces _ = ""
 
 fontMatches :: Attr -> [String] -> Bool
@@ -57,16 +56,16 @@ inlines fonts (Span a i)
  | fontMatches a fonts = Code a (toString i)
 inlines _ i = i
 
-list = do
-  c <- B.getContents
-  Right d <- readDoc c
-  putStr $ unlines $ listFonts d
+interact' :: (Pandoc -> Text) -> IO ()
+interact' f = T.getContents >>=
+              handleError . readJSON def >>=
+              T.putStr . f
+
+list = interact' (Data.Text.unlines . listFonts)
 
 asCode [] = pure ()
-asCode fonts = do
-  c <- B.getContents
-  Right d <- readDoc c
-  T.putStr $ writeJSON def $ walk (inlines fonts) $ walk (blocks fonts) $ d
+asCode fonts = interact' (writeJSON def . walkFonts)
+  where walkFonts = walk (inlines fonts) . walk (blocks fonts)
 
 data Options = Options {
   listOption :: Bool,

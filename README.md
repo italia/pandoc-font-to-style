@@ -7,7 +7,7 @@ documents enabling you to turn fonts into semantic
 information. currently it can turn fonts into code with the
 `--as-code` option as follows:
 
-    $ pandoc-font-to-style --as-code "Courier New" < document.docx | pandoc ...
+    $ pandoc-font-to-style --as-code "Courier New" < in.json > out.json
 
 it's easy to extend the filter in order to support more options like
 `--as-emph`, `--as-strong` etcetera.
@@ -18,7 +18,7 @@ to help selecting values for the `--as-code` option, the filter
 supports a `--list` option which produces a summary of the fonts found
 in the document:
 
-    $ pandoc-font-to-style --list < document.docx
+    $ pandoc document.docx -t json --font-attributes | pandoc-font-to-style --list
     the document contains the following fonts:
     "Courier New", 2 occurrences
 
@@ -28,10 +28,18 @@ when used with the `--as-code` option, the command produces the
 modified document serialised as JSON so that it can be piped through
 other filters or passed to pandoc again
 
-    $ pandoc-font-to-style --as-code "Courier New" < doc.docx > doc.json
-    $ pandoc doc.json -o doc.rst # for instance
+    $ pandoc doc.docx -o in.json --font-attributes
+    $ pandoc-font-to-style --as-code "Courier New" < in.json > out.json
+    $ pandoc out.json -o doc.rst
 
-see the doc for pandoc's `--filter` option for more details
+you can also do this in a single command with pipes like in `pandoc
+... -t json | pandoc-font-to-style ... | pandoc -f json ...`.
+
+if `doc.docx` contains multimedia files, the `--extract-media` option
+can be used in the first line so that media can be found also in the
+resulting `doc.rst`. All pandoc options can be used either in the
+first or the last line, using this command just to transform the JSON
+document
 
 ##### license
 
